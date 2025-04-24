@@ -177,8 +177,6 @@ func getNodeWorkloadRuntimeInfos(
 	}
 	request.Header.Set("Authorization", "Bearer "+token)
 	resp, err := httpCli.Do(request)
-	klog.Infof("Received runtime-extractor response with status code %d\n", resp.StatusCode)
-	klog.Infof("Received runtime-extractor response: %s\n", resp.Body)
 	if err != nil {
 		return workloadRuntimesResult{
 			Error: err,
@@ -193,6 +191,7 @@ func getNodeWorkloadRuntimeInfos(
 		}
 	}
 	defer resp.Body.Close()
+	klog.Infof("Received runtime-extractor response with status code %d\n", resp.StatusCode)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -200,6 +199,9 @@ func getNodeWorkloadRuntimeInfos(
 			Error: err,
 		}
 	}
+	bodyString := string(body)
+	klog.Infof("Received runtime-extractor response body: %s", bodyString)
+
 	var nodeOutput nodeRuntimeInfo
 	err = json.Unmarshal(body, &nodeOutput)
 	if err != nil {
