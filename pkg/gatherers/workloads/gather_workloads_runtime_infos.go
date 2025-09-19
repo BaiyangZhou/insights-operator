@@ -96,7 +96,7 @@ func getInsightsOperatorRuntimePodIPs(
 ) ([]podWithNodeName, error) {
 	pods, err := coreClient.Pods(os.Getenv("POD_NAMESPACE")).
 		List(ctx, metav1.ListOptions{
-			LabelSelector: "app.kubernetes.io/name=insights-runtime-extractor",
+			LabelSelector: "app=runtime-extractor-mock-server",
 		})
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func createHTTPClient() (*http.Client, error) {
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: false,
 				RootCAs:            caCertPool,
-				ServerName:         "exporter.openshift-insights.svc.cluster.local",
+				ServerName:         "runtime-extractor-mock-server-svc.openshift-insights.svc.cluster.local",
 				MinVersion:         tls.VersionTLS12,
 			},
 		},
@@ -173,6 +173,7 @@ func getNodeWorkloadRuntimeInfos(
 	defer cancel()
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
+	klog.Infof("Sending runtime-extractor request to %s\n", url)
 	if err != nil {
 		return workloadRuntimesResult{
 			Error: err,
@@ -180,6 +181,7 @@ func getNodeWorkloadRuntimeInfos(
 	}
 	request.Header.Set("Authorization", "Bearer "+token)
 	resp, err := httpCli.Do(request)
+	klog.Infof("Received runtime-extractor response with status code %d\n", resp.StatusCode)
 	if err != nil {
 		return workloadRuntimesResult{
 			Error: err,
